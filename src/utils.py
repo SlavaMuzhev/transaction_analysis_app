@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -7,6 +8,18 @@ from typing import Any, Dict, Hashable, List, Optional
 import pandas as pd
 import requests
 from dotenv import load_dotenv
+
+project_root = Path(__file__).resolve().parent.parent
+log_dir = project_root / "logs"
+log_file_path = log_dir / "utils.log"
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+file_handler = logging.FileHandler(filename=log_file_path, mode="w", encoding="utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
+
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
@@ -28,6 +41,7 @@ def get_greeting(date_str: str) -> str:
     else:
         message = "Доброй ночи"
 
+    logger.info(f"Приветствие сформировано для часа: {hour}")
     return f'"{message}"'
 
 
@@ -36,8 +50,11 @@ def load_data_from_file(file_path: str) -> Optional[pd.DataFrame]:
     Функция считывает данные (Excel) для последующей передачи их в основную функцию
     """
     try:
-        return pd.read_excel(file_path)
-    except Exception:
+        df = pd.read_excel(file_path)
+        logger.info(f"Файл {file_path} успешно загружен. Записей: {len(df)}")
+        return df
+    except Exception as e:
+        logger.error(f"Ошибка при чтении файла {file_path}: {e}")
         return None
 
 
@@ -51,7 +68,9 @@ def filter_data_by_month_range(df: pd.DataFrame, date_str: str, date_column: str
     df[date_column] = pd.to_datetime(df[date_column], dayfirst=True)
 
     mask = (df[date_column] >= start_date) & (df[date_column] <= end_date)
-    return df.loc[mask].sort_values(by=date_column, ascending=False)
+    result = df.loc[mask].sort_values(by=date_column, ascending=False)
+    logger.info(f"Данные отфильтрованы за период: {start_date} - {end_date}")
+    return result
 
 
 def get_card_statistics(df: pd.DataFrame) -> list[dict[Hashable, Any]]:
@@ -59,6 +78,9 @@ def get_card_statistics(df: pd.DataFrame) -> list[dict[Hashable, Any]]:
     Функция по каждой карте выдает последние 4 цифры, общую сумма расходов, кешбэк
     """
     df_card_numbers = df.dropna(subset=["Номер карты"]).copy()
+    if df_card_numbers.empty:
+        logger.warning("Данные о картах отсутствуют в выборке")
+        return []
     df_card_numbers["last_digits"] = df_card_numbers["Номер карты"].astype(str).str.slice(-4)
 
     stats = df_card_numbers.groupby("last_digits")["Сумма операции"].sum().reset_index()
@@ -67,6 +89,7 @@ def get_card_statistics(df: pd.DataFrame) -> list[dict[Hashable, Any]]:
     stats["total_spent"] = stats["total_spent"].abs().round(2)
     stats["cashback"] = (stats["total_spent"] / 100).round(2)
 
+    logger.info(f"Рассчитана статистика для {len(stats)} уникальных карт")
     return stats.to_dict(orient="records")
 
 
@@ -94,6 +117,7 @@ def get_top_transactions(df: pd.DataFrame) -> list[Any]:
 
     result["amount"] = result["amount"].abs()
 
+    logger.info("Топ-5 транзакций успешно сформирован")
     return result[["date", "amount", "category", "description"]].to_dict(orient="records")
 
 
@@ -108,7 +132,8 @@ def get_market_data() -> Dict[str, List[Dict[str, Any]]]:
     try:
         with open(settings_path, "r", encoding="utf-8") as f:
             settings = json.load(f)
-    except FileNotFoundError, json.JSONDecodeError:
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(f"Критическая ошибка при чтении настроек: {e}")
         return {"currencies": [], "stocks": []}
 
     user_currencies = settings.get("user_currencies", [])
@@ -123,8 +148,9 @@ def get_market_data() -> Dict[str, List[Dict[str, Any]]]:
             for code in user_currencies:
                 if code in valutes:
                     currencies_result.append({"currency": code, "rate": round(valutes[code]["Value"], 2)})
-    except requests.exceptions.RequestException:
-        pass
+            logger.info("Курсы валют успешно обновлены")
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"Не удалось получить курсы валют: {e}")
 
     stocks_result = []
     if user_stocks and API_KEY:
@@ -141,7 +167,8 @@ def get_market_data() -> Dict[str, List[Dict[str, Any]]]:
 
                     if current_price > 0:
                         stocks_result.append({"stock": symbol, "price": round(current_price, 2)})
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Ошибка при получении акции {symbol}: {e}")
+        logger.info(f"Получены данные по акциям в количестве: {len(stocks_result)}")
 
     return {"currencies": currencies_result, "stocks": stocks_result}
