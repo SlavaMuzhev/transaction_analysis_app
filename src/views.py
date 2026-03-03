@@ -1,18 +1,11 @@
 import json
 from pathlib import Path
 
-
-from utils import (
-    get_greeting,
-    load_data_from_file,
-    filter_data_by_month_range,
-    get_card_statistics,
-    get_top_transactions,
-    get_market_data
-)
+from src.utils import (filter_data_by_month_range, get_card_statistics, get_greeting, get_market_data,
+                       get_top_transactions, load_data_from_file)
 
 
-def main_views(date_str):
+def main_views(date_str: str) -> str:
     """
     Главная функция, которая собирает все данные в единый JSON-ответ
     """
@@ -23,7 +16,7 @@ def main_views(date_str):
     src_path = Path(__file__).resolve().parent
     file_path = src_path.parent / "data" / "operations.xlsx"
 
-    data = load_data_from_file(file_path)
+    data = load_data_from_file(str(file_path))
 
     if data is None:
         return json.dumps({"error": "File not found or empty"}, ensure_ascii=False)
@@ -42,13 +35,12 @@ def main_views(date_str):
 
     # Сборка финального словаря
     response = {
-        "greeting": greeting.replace('"', ''),
+        "greeting": greeting.replace('"', ""),
         "cards": card_statistics,
         "top_transactions": top_transactions,
         "currency_rates": market_data.get("currencies", []),
-        "stock_prices": market_data.get("stocks", [])
+        "stock_prices": market_data.get("stocks", []),
     }
 
     # Возвращаем JSON-строку с поддержкой кириллицы
     return json.dumps(response, ensure_ascii=False, indent=2)
-
