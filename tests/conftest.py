@@ -3,7 +3,7 @@ import pytest
 
 
 @pytest.fixture
-def sample_df():
+def sample_df() -> pd.DataFrame:
     """Создает тестовый DataFrame с транзакциями"""
     return pd.DataFrame(
         {
@@ -17,13 +17,13 @@ def sample_df():
 
 
 @pytest.fixture
-def mock_settings():
+def mock_settings() -> dict:
     """Имитирует содержимое user_settings.json"""
     return {"user_currencies": ["USD"], "user_stocks": ["AAPL"]}
 
 
 @pytest.fixture
-def mock_utils_data():
+def mock_utils_data() -> dict:
     """Данные для имитации ответов всех функций utils в тестах views"""
     return {
         "greeting": "Добрый день",
@@ -34,7 +34,7 @@ def mock_utils_data():
 
 
 @pytest.fixture
-def mock_utils_data_with_minus():
+def mock_utils_data_with_minus() -> dict:
     return {
         "Дата операции": pd.to_datetime(
             ["2023-10-01", "2023-10-05", "2023-10-02", "2023-10-10", "2023-10-08", "2023-10-07"]

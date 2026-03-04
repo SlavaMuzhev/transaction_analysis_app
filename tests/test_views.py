@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
@@ -12,7 +12,15 @@ from src.views import main_views
 @patch("src.views.get_card_statistics")
 @patch("src.views.get_top_transactions")
 @patch("src.views.get_market_data")
-def test_main_views_success(mock_market, mock_top, mock_cards, mock_filter, mock_load, mock_greeting, mock_utils_data):
+def test_main_views_success(
+    mock_market: MagicMock,
+    mock_top: MagicMock,
+    mock_cards: MagicMock,
+    mock_filter: MagicMock,
+    mock_load: MagicMock,
+    mock_greeting: MagicMock,
+    mock_utils_data: MagicMock,
+) -> None:
     """Тест успешной сборки JSON-ответа"""
 
     mock_greeting.return_value = '"Добрый день"'
@@ -33,7 +41,7 @@ def test_main_views_success(mock_market, mock_top, mock_cards, mock_filter, mock
 
 
 @patch("src.views.load_data_from_file")
-def test_main_views_file_not_found(mock_load):
+def test_main_views_file_not_found(mock_load: MagicMock) -> None:
     """Тест обработки ситуации, когда Excel-файл отсутствует"""
     mock_load.return_value = None
 
@@ -48,7 +56,9 @@ def test_main_views_file_not_found(mock_load):
 @patch("src.views.load_data_from_file")
 @patch("src.views.filter_data_by_month_range")
 @patch("src.views.get_market_data")
-def test_main_views_empty_market_data(mock_market, mock_filter, mock_load, mock_greeting):
+def test_main_views_empty_market_data(
+    mock_market: MagicMock, mock_filter: MagicMock, mock_load: MagicMock, mock_greeting: MagicMock
+) -> None:
     """Тест устойчивости к пустым данным от API"""
     mock_greeting.return_value = "Привет"
     mock_load.return_value = pd.DataFrame({"test": [1]})

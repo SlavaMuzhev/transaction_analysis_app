@@ -18,18 +18,18 @@ from src.utils import (filter_data_by_month_range, get_card_statistics, get_gree
         ("2023-10-15 01:00:00", '"Доброй ночи"'),
     ],
 )
-def test_get_greeting(date_str, expected):
+def test_get_greeting(date_str: str, expected: str) -> None:
     assert get_greeting(date_str) == expected
 
 
-def test_filter_data_by_month_range_sorting():
+def test_filter_data_by_month_range_sorting() -> None:
     data = {"Дата операции": ["01.10.2023", "15.10.2023"], "Сумма": [100, 200]}
     df = pd.DataFrame(data)
     result = filter_data_by_month_range(df, "2023-10-20")
     assert result.iloc[0]["Дата операции"] == pd.to_datetime("2023-10-15")
 
 
-def test_get_card_statistics():
+def test_get_card_statistics() -> None:
     data = {"Номер карты": ["*1111", "*1111", "*2222", None], "Сумма операции": [-100.0, -50.0, -200.0, -10.0]}
     df = pd.DataFrame(data)
     result = get_card_statistics(df)
@@ -41,7 +41,7 @@ def test_get_card_statistics():
 
 
 @patch("requests.get")
-def test_get_market_data(mock_get):
+def test_get_market_data(mock_get: MagicMock) -> None:
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"Valute": {"USD": {"Value": 75.5}}}
@@ -57,7 +57,7 @@ def test_get_market_data(mock_get):
 
 
 @patch("src.utils.requests.get")
-def test_get_market_data_empty_settings(mock_get):
+def test_get_market_data_empty_settings(mock_get: MagicMock) -> None:
     """Тест когда файл настроек пуст или отсутствует"""
     with patch("builtins.open", side_effect=FileNotFoundError):
         result = get_market_data()
@@ -65,7 +65,7 @@ def test_get_market_data_empty_settings(mock_get):
 
 
 @patch("src.utils.requests.get")
-def test_get_market_data_stocks_success(mock_get, mock_settings):
+def test_get_market_data_stocks_success(mock_get: MagicMock, mock_settings: MagicMock) -> None:
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"c": 150.0}
@@ -82,19 +82,19 @@ def test_get_market_data_stocks_success(mock_get, mock_settings):
 
 
 @patch("pandas.read_excel")
-def test_load_data_from_file_fail(mock_read):
+def test_load_data_from_file_fail(mock_read: MagicMock) -> None:
     mock_read.side_effect = Exception("Read error")
     assert load_data_from_file("path.xlsx") is None
 
 
 @patch("builtins.open", side_effect=FileNotFoundError)
-def test_get_market_data_no_settings(mock_open_err):
+def test_get_market_data_no_settings(mock_open_err: MagicMock) -> None:
     result = get_market_data()
     assert result == {"currencies": [], "stocks": []}
 
 
 @patch("builtins.open", new_callable=mock_open, read_data='{ "invalid": json }')
-def test_get_market_data_bad_json(mock_file):
+def test_get_market_data_bad_json(mock_file: MagicMock) -> None:
     with patch("json.load", side_effect=json.JSONDecodeError("msg", "doc", 0)):
         from src.utils import get_market_data
 
@@ -103,24 +103,24 @@ def test_get_market_data_bad_json(mock_file):
 
 
 @patch("src.utils.requests.get")
-def test_get_market_data_api_fail(mock_get):
+def test_get_market_data_api_fail(mock_get: MagicMock) -> None:
     mock_get.side_effect = requests.exceptions.RequestException
     result = get_market_data()
     assert result["currencies"] == []
 
 
 @patch("pandas.read_excel", side_effect=Exception("Error"))
-def test_load_data_logging(mock_read):
+def test_load_data_logging(mock_read: MagicMock) -> None:
     assert load_data_from_file("any.xlsx") is None
 
 
-def test_filter_sorting():
+def test_filter_sorting() -> None:
     df = pd.DataFrame({"Дата операции": ["01.01.2023", "10.01.2023"], "Сумма": [1, 2]})
     result = filter_data_by_month_range(df, "2023-01-15")
     assert result.iloc[0]["Дата операции"] == pd.to_datetime("2023-01-10")
 
 
-def test_get_top_transactions_logic(mock_utils_data_with_minus):
+def test_get_top_transactions_logic(mock_utils_data_with_minus: MagicMock) -> None:
     df = pd.DataFrame(mock_utils_data_with_minus)
     result = get_top_transactions(df)
     assert len(result) == 5
@@ -132,7 +132,7 @@ def test_get_top_transactions_logic(mock_utils_data_with_minus):
 
 
 @patch("src.utils.pd.read_excel")
-def test_load_data_from_file_success(mock_read):
+def test_load_data_from_file_success(mock_read: MagicMock) -> None:
     """Тест успешного чтения файла"""
     mock_df = pd.DataFrame({"column1": [1, 2], "column2": [3, 4]})
     mock_read.return_value = mock_df
@@ -146,7 +146,7 @@ def test_load_data_from_file_success(mock_read):
     mock_read.assert_called_once_with("test.xlsx")
 
 
-def test_get_card_statistics_empty_data():
+def test_get_card_statistics_empty_data() -> None:
     """Тест для случая, когда данных о картах нет"""
     df_empty = pd.DataFrame(columns=["Номер карты", "Сумма операции"])
 
