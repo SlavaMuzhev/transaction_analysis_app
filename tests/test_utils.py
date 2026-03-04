@@ -5,14 +5,8 @@ import pandas as pd
 import pytest
 import requests
 
-from src.utils import (
-    filter_data_by_month_range,
-    get_card_statistics,
-    get_greeting,
-    get_market_data,
-    get_top_transactions,
-    load_data_from_file,
-)
+from src.utils import (filter_data_by_month_range, get_card_statistics, get_greeting, get_market_data,
+                       get_top_transactions, load_data_from_file)
 
 
 @pytest.mark.parametrize(
