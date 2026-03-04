@@ -1,8 +1,14 @@
 import json
 from pathlib import Path
 
-from src.utils import (filter_data_by_month_range, get_card_statistics, get_greeting, get_market_data,
-                       get_top_transactions, load_data_from_file)
+from src.utils import (
+    filter_data_by_month_range,
+    get_card_statistics,
+    get_greeting,
+    get_market_data,
+    get_top_transactions,
+    load_data_from_file,
+)
 
 
 def main_views(date_str: str) -> str:
