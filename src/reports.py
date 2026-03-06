@@ -23,6 +23,10 @@ T = TypeVar("T", bound=pd.DataFrame)
 
 
 def report_to_file(filename: Optional[str | Callable] = None) -> Callable:
+    """
+    Декоратор для функции-отчета записывает в файл результат,
+    который возвращает функция, формирующая отчет.
+    """
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> T:
@@ -64,6 +68,9 @@ def report_to_file(filename: Optional[str | Callable] = None) -> Callable:
 
 @report_to_file
 def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
+    """
+    Функция возвращает траты по заданной категории за последние три месяца (от переданной даты)
+    """
     logger.debug(f"Запуск отчета по категории: {category}, дата отсечки: {date or 'текущая'}")
 
     if date:
