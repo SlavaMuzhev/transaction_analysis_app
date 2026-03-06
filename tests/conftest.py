@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
@@ -56,3 +58,13 @@ def sample_data() -> pd.DataFrame:
             "Статус": ["OK", "OK", "OK", "FAILED"],  # Последняя должна игнорироваться
         }
     )
+
+
+@pytest.fixture
+def report_dir() -> Path:
+    """Фикстура для пути к папке с отчетами"""
+    from src.reports import project_root
+
+    path = project_root / "reports"
+    path.mkdir(exist_ok=True)
+    return path

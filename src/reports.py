@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Optional, TypeVar, cast
+from typing import Any, Callable, Optional, TypeVar
 
 import pandas as pd
 
@@ -29,17 +29,13 @@ def report_to_file(filename: Optional[str | Callable] = None) -> Callable:
             params_log = json.dumps(kwargs, ensure_ascii=False, default=str)
             logger.debug(f"Функция {func.__name__} вызвана с аргументами: {params_log}")
 
-            # Вызываем функцию и проверяем, что она вернула DataFrame
             result = func(*args, **kwargs)
 
             if not isinstance(result, pd.DataFrame):
                 logger.error(f"Функция {func.__name__} вернула {type(result)} вместо pd.DataFrame. Отчет не сохранен.")
                 return result
 
-            # Используем cast, чтобы mypy видел в result_df именно DataFrame
-            result_df = cast(pd.DataFrame, result)
-
-            df_to_save = result_df.copy()
+            df_to_save = result.copy()
             for col in df_to_save.select_dtypes(include=["datetime", "datetimetz"]).columns:
                 df_to_save[col] = df_to_save[col].dt.strftime("%d.%m.%Y %H:%M:%S")
 
